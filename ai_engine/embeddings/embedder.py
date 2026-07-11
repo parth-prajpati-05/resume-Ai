@@ -3,7 +3,6 @@ Embedding engine using sentence-transformers/all-MiniLM-L6-v2
 Runs locally — zero API cost
 """
 
-from sentence_transformers import SentenceTransformer
 from typing import List, Union
 from loguru import logger
 import numpy as np
@@ -24,8 +23,11 @@ class EmbeddingEngine:
 
     def _load_model(self):
         try:
+            from sentence_transformers import SentenceTransformer  # lazy import
             self._model = SentenceTransformer(self.model_name)
             logger.info(f"✅ Embedding model loaded: {self.model_name}")
+        except ImportError:
+            logger.warning("⚠️ sentence-transformers not installed — embeddings disabled")
         except Exception as e:
             logger.error(f"❌ Failed to load embedding model: {e}")
 

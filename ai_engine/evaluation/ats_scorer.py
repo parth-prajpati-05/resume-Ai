@@ -7,8 +7,6 @@ import re
 from typing import Dict, List, Tuple
 from loguru import logger
 
-from ai_engine.embeddings.embedder import get_embedder
-
 
 class ATSScorer:
     """
@@ -34,6 +32,7 @@ class ATSScorer:
     @property
     def embedder(self):
         if self._embedder is None:
+            from ai_engine.embeddings.embedder import get_embedder  # lazy import
             self._embedder = get_embedder()
         return self._embedder
 

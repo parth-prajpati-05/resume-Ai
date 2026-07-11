@@ -4,8 +4,6 @@ Uses PyMuPDF, python-docx, regex patterns + LLM for structured extraction
 """
 
 import re
-import fitz  # PyMuPDF
-from docx import Document
 from pathlib import Path
 from typing import Optional
 from loguru import logger
@@ -39,6 +37,7 @@ class ResumeParser:
 
     def _extract_pdf(self, file_path: str) -> str:
         try:
+            import fitz  # lazy import PyMuPDF
             doc = fitz.open(file_path)
             text = ""
             for page in doc:
@@ -50,12 +49,16 @@ class ResumeParser:
                 text += page_text + "\n"
             doc.close()
             return text.strip()
+        except ImportError:
+            logger.warning("PyMuPDF not installed, falling back to OCR")
+            return self.ocr.extract_from_pdf(file_path)
         except Exception as e:
             logger.error(f"PDF extraction failed: {e}")
             return self.ocr.extract_from_pdf(file_path)
 
     def _extract_docx(self, file_path: str) -> str:
         try:
+            from docx import Document  # lazy import python-docx
             doc = Document(file_path)
             paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
             # Also extract table content
@@ -65,6 +68,9 @@ class ResumeParser:
                         if cell.text.strip():
                             paragraphs.append(cell.text.strip())
             return "\n".join(paragraphs)
+        except ImportError:
+            logger.warning("python-docx not installed")
+            return ""
         except Exception as e:
             logger.error(f"DOCX extraction failed: {e}")
             return ""
