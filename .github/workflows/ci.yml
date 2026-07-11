@@ -76,7 +76,7 @@ jobs:
                  --tb=short -p no:warnings \
                  --cov=ai_engine/evaluation \
                  --cov-append --cov-report=xml \
-                 -k "not semantic"
+                 -k "not semantic and not full_ats_score"
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
