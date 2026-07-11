@@ -45,12 +45,10 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y tesseract-ocr
 
-      - name: Install lightweight test dependencies
+      - name: Install all dependencies
         run: |
           pip install --upgrade pip
-          pip install pytest pytest-cov pytest-asyncio loguru python-dotenv \
-                      pydantic pydantic-settings loguru aiosqlite httpx \
-                      PyMuPDF python-docx pytesseract Pillow scikit-learn numpy
+          pip install -r requirements.txt
 
       - name: Create test env file
         run: |
@@ -60,21 +58,25 @@ jobs:
           echo "OPENAI_API_KEY=test_key" >> .env
           echo "DATABASE_URL=sqlite+aiosqlite:///./test_resume_ai.db" >> .env
 
-      - name: Run parser tests (lightweight, no LLM/embeddings)
+      - name: Verify imports
+        run: |
+          python -c "from ai_engine.parser.resume_parser import ResumeParser; print('✅ Parser OK')"
+          python -c "from ai_engine.evaluation.ats_scorer import ATSScorer; print('✅ Scorer OK')"
+
+      - name: Run parser tests
         run: |
           pytest tests/test_parser.py -v \
                  --tb=short -p no:warnings \
                  --cov=ai_engine/parser \
                  --cov-report=xml --cov-report=term-missing
 
-      - name: Run scoring unit tests (with mocked embedder)
+      - name: Run scoring unit tests (skip semantic similarity)
         run: |
           pytest tests/test_scoring.py -v \
                  --tb=short -p no:warnings \
                  --cov=ai_engine/evaluation \
-                 --cov-report=xml --cov-report=term-missing \
+                 --cov-append --cov-report=xml \
                  -k "not semantic"
-        continue-on-error: true
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
