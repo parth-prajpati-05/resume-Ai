@@ -29,7 +29,13 @@ class ATSScorer:
     }
 
     def __init__(self):
-        self.embedder = get_embedder()
+        self._embedder = None  # Lazy-loaded to avoid heavy init in tests
+
+    @property
+    def embedder(self):
+        if self._embedder is None:
+            self._embedder = get_embedder()
+        return self._embedder
 
     def compute_keyword_match(self, resume_text: str, jd_text: str) -> Tuple[float, Dict]:
         """Extract and match keywords from JD in resume."""
